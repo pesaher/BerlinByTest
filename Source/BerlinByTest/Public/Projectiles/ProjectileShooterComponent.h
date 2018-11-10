@@ -7,8 +7,6 @@
 #include "Runtime/Engine/Public/TimerManager.h"
 #include "ProjectileShooterComponent.generated.h"
 
-class UProjectileMovementComponent;
-
 UCLASS( ClassGroup=(Projectiles), meta=(BlueprintSpawnableComponent) )
 class BERLINBYTEST_API UProjectileShooterComponent : public UActorComponent
 {
@@ -50,8 +48,6 @@ public:
 		float ReloadCooldownInSeconds;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile Shooter|Configuration")
 		TSubclassOf<AActor> ProjectileClass;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile Shooter|Configuration")
-		TSubclassOf<UProjectileMovementComponent> ProjectileComponentClassNeeded;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Projectile Shooter|Readables")

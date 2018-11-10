@@ -2,10 +2,6 @@
 
 #include "../../Public/Projectiles/ProjectileShooterComponent.h"
 #include "Runtime/Engine/Classes/Engine/World.h"
-#include "Runtime/Engine/Classes/GameFramework/ProjectileMovementComponent.h"
-#include "Runtime/Engine/Classes/Engine/BlueprintGeneratedClass.h"
-#include "Runtime/Engine/Classes/Engine/SimpleConstructionScript.h"
-#include "Runtime/Engine/Classes/Engine/SCS_Node.h"
 
 // Sets default values for this component's properties
 UProjectileShooterComponent::UProjectileShooterComponent()
@@ -13,7 +9,6 @@ UProjectileShooterComponent::UProjectileShooterComponent()
 	MaximumAmmo = 6;
 	InitialAmmo = MaximumAmmo;
 	ReloadCooldownInSeconds = 5.f;
-	ProjectileComponentClassNeeded = UProjectileMovementComponent::StaticClass();
 }
 
 // Called when the game starts
@@ -22,28 +17,6 @@ void UProjectileShooterComponent::BeginPlay()
 	Super::BeginPlay();
 	CurrentAmmo = InitialAmmo;
 	StartReload();
-	UBlueprintGeneratedClass* BlueprintProjectileClass = Cast<UBlueprintGeneratedClass>(ProjectileClass);
-	if (BlueprintProjectileClass->IsValidLowLevel())
-	{
-		bool bProjectileMovementComponentFound = false;
-		USimpleConstructionScript* BlueprintProjectileConstructionScript = BlueprintProjectileClass->SimpleConstructionScript;
-		if (BlueprintProjectileConstructionScript->IsValidLowLevel())
-		{
-			const TArray<USCS_Node*>& ProjectileClassComponents = BlueprintProjectileConstructionScript->GetAllNodes();
-			for (const USCS_Node* ProjectileClassComponent : ProjectileClassComponents)
-			{
-				if (ProjectileClassComponent->ComponentClass == ProjectileComponentClassNeeded)
-				{
-					bProjectileMovementComponentFound = true;
-					break;
-				}
-			}
-		}
-		if (!bProjectileMovementComponentFound)
-		{
-			// Notify that there is no Projectile Movement Component in the selected class
-		}
-	}
 }
 
 void UProjectileShooterComponent::StartReload()
