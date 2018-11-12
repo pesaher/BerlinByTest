@@ -4,7 +4,7 @@
 
 // Add default functionality here for any IShootable functions that are not pure virtual.
 
-int32 GetAutoAimPriority_Implementation()
+float IShootable::GetAutoAimPriority_Implementation() const
 {
-	return 0;
+	return 0.f;
 }

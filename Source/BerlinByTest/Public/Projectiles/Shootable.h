@@ -25,5 +25,6 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Projectiles")
 		void ProjectileHit();
 	UFUNCTION(BlueprintNativeEvent, Category = "Projectiles")
-		int32 GetAutoAimPriority() const;
+		float GetAutoAimPriority() const;
+	virtual float GetAutoAimPriority_Implementation() const;
 };

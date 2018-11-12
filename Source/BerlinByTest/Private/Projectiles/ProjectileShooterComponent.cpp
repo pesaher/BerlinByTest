@@ -88,7 +88,6 @@ const AActor* UProjectileShooterComponent::GetCenteredShootableActor() const
 							float ShootableActorAutoAimScore = GetAutoAimScore(ShootablePriority, DistanceToShootable, DotProductOfVectors, CosineOfMaximumVisionAngle);
 							if (ShootableActorAutoAimScore > CurrentMaximumAutoAimScore)
 							{
-								GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::SanitizeFloat(ShootableActorAutoAimScore));
 								CenteredShootableActor = ShootableActor;
 								CurrentMaximumAutoAimScore = ShootableActorAutoAimScore;
 							}
