@@ -3,7 +3,7 @@
 #include "Projectiles/ProjectileShooterComponent.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
-#include "Projectiles/Shootable.h"
+#include "Shootables/Shootable.h"
 #include "Kismet/KismetMathLibrary.h"
 
 // Sets default values for this component's properties
