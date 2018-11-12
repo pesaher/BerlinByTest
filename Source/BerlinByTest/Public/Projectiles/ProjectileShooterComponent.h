@@ -38,6 +38,7 @@ private:
 		void StartReload();
 	FTimerManager& GetTimerManager(bool& bOutIsTimerManagerValid) const;
 	const AActor* GetCenteredShootableActor() const;
+	float GetAutoAimScore(float InPriority, float InDistance, float InCosineOfVisionAngle, float InCosineOfMaximumVisionAngle) const;
 
 //VARIABLES
 public:

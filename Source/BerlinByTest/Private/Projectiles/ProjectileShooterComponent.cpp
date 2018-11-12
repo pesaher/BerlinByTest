@@ -12,6 +12,11 @@ UProjectileShooterComponent::UProjectileShooterComponent()
 	MaximumAmmo = 6;
 	InitialAmmo = MaximumAmmo;
 	ReloadCooldownInSeconds = 5.f;
+	PriorityWeight = 0.f;
+	DistanceWeight = 0.f;
+	MaximumDistance = -1.f;
+	FocusWeight = 1.f;
+	MaximumVisionAngle = 30.f;
 }
 
 // Called when the game starts
@@ -50,30 +55,65 @@ FTimerManager& UProjectileShooterComponent::GetTimerManager(bool& bOutIsTimerMan
 
 const AActor* UProjectileShooterComponent::GetCenteredShootableActor() const
 {
+	const AActor* CenteredShootableActor = nullptr;
 	const APawn* const ComponentOwner = Cast<APawn>(GetOwner());
 	if (ComponentOwner->IsValidLowLevel())
 	{
-		float CosineOfMaximumVisionAngle = FGenericPlatformMath::Cos(MaximumVisionAngle);
+		float CurrentMaximumAutoAimScore = 0.f;
+		float CosineOfMaximumVisionAngle = FGenericPlatformMath::Cos(FMath::DegreesToRadians(MaximumVisionAngle));
 		FVector OwnerLocation = ComponentOwner->GetActorLocation();
 		FVector OwnerForwardVector = UKismetMathLibrary::GetForwardVector(ComponentOwner->GetControlRotation());
 		OwnerForwardVector.Normalize();
+		UWorld* const CurrentWorld = GetWorld();
 		TArray<AActor*> ShootableActors;
 		UGameplayStatics::GetAllActorsWithInterface(this, UShootable::StaticClass(), ShootableActors);
 		for (const AActor* ShootableActor : ShootableActors)
 		{
-			FVector VectorToShootable = ShootableActor->GetActorLocation() - OwnerLocation;
-			if (VectorToShootable.Size() < MaximumDistance)
+			FVector ShootableActorLocation = ShootableActor->GetActorLocation();
+			FVector VectorToShootable = ShootableActorLocation - OwnerLocation;
+			float DistanceToShootable = VectorToShootable.Size();
+			if ((MaximumDistance <= 0.f) || DistanceToShootable < MaximumDistance))
 			{
 				VectorToShootable.Normalize();
 				float DotProductOfVectors = FVector::DotProduct(VectorToShootable, OwnerForwardVector);
 				if (DotProductOfVectors > CosineOfMaximumVisionAngle)
 				{
-
+					FHitResult TraceHit;
+					CurrentWorld->LineTraceSingleByChannel(TraceHit, OwnerLocation, ShootableActorLocation, ECC_GameTraceChannel2);
+					if (TraceHit.GetActor() == ShootableActor)
+					{
+						float ShootableActorAutoAimScore = GetAutoAimScore(0.f, DistanceToShootable, DotProductOfVectors, CosineOfMaximumVisionAngle);
+						if (ShootableActorAutoAimScore > CurrentMaximumAutoAimScore)
+						{
+							CenteredShootableActor = ShootableActor;
+							CurrentMaximumAutoAimScore = ShootableActorAutoAimScore;
+						}
+					}
 				}
 			}
 		}
 	}
-	return ShootableActors[0];
+	return CenteredShootableActor;
+}
+
+float UProjectileShooterComponent::GetAutoAimScore(float InPriority, float InDistance, float InCosineOfVisionAngle, float InCosineOfMaximumVisionAngle) const
+{
+	float AutoAimScore = 0.f;
+	float DistanceFraction = 0.f;
+	float TotalPrioritySum = PriorityWeight + FocusWeight;
+	if (MaximumDistance > 0.f)
+	{
+		TotalPrioritySum += DistanceWeight;
+		DistanceFraction = InDistance * DistanceWeight / MaximumDistance;
+	}
+	if (TotalPrioritySum > 0.f)
+	{
+		float PriorityFraction = InPriority * PriorityWeight * 0.1f;
+		float FocusFraction = InCosineOfVisionAngle * FocusWeight / InCosineOfMaximumVisionAngle;
+		float SumOfFractions = PriorityFraction + FocusFraction + DistanceFraction;
+		AutoAimScore = SumOfFractions / TotalPrioritySum;
+	}
+	return AutoAimScore;
 }
 
 bool UProjectileShooterComponent::Shoot()
@@ -88,7 +128,13 @@ bool UProjectileShooterComponent::Shoot()
 			if (ComponentOwner->IsValidLowLevel())
 			{
 				FRotator ProjectileRotation = { 0.f, ComponentOwner->GetControlRotation().Yaw, 0.f };
-				AActor* SpawnedProjectile = CurrentWorld->SpawnActor<AActor>(ProjectileClass, ComponentOwner->GetActorLocation(), ProjectileRotation);
+				FVector ProjectileLocation = ComponentOwner->GetActorLocation();
+				const AActor* const CenteredShootableActor = GetCenteredShootableActor();
+				if (CenteredShootableActor->IsValidLowLevel())
+				{
+					ProjectileRotation = UKismetMathLibrary::FindLookAtRotation(ProjectileLocation, CenteredShootableActor->GetActorLocation());
+				}
+				CurrentWorld->SpawnActor<AActor>(ProjectileClass, ProjectileLocation, ProjectileRotation);
 				--CurrentAmmo;
 				StartReload();
 			}
