@@ -67,12 +67,12 @@ const AActor* UProjectileShooterComponent::GetCenteredShootableActor() const
 		UWorld* const CurrentWorld = GetWorld();
 		TArray<AActor*> ShootableActors;
 		UGameplayStatics::GetAllActorsWithInterface(this, UShootable::StaticClass(), ShootableActors);
-		for (const AActor* ShootableActor : ShootableActors)
+		for (AActor* ShootableActor : ShootableActors)
 		{
 			FVector ShootableActorLocation = ShootableActor->GetActorLocation();
 			FVector VectorToShootable = ShootableActorLocation - OwnerLocation;
 			float DistanceToShootable = VectorToShootable.Size();
-			if ((MaximumDistance <= 0.f) || DistanceToShootable < MaximumDistance))
+			if ((MaximumDistance <= 0.f) || (DistanceToShootable < MaximumDistance))
 			{
 				VectorToShootable.Normalize();
 				float DotProductOfVectors = FVector::DotProduct(VectorToShootable, OwnerForwardVector);
@@ -82,11 +82,16 @@ const AActor* UProjectileShooterComponent::GetCenteredShootableActor() const
 					CurrentWorld->LineTraceSingleByChannel(TraceHit, OwnerLocation, ShootableActorLocation, ECC_GameTraceChannel2);
 					if (TraceHit.GetActor() == ShootableActor)
 					{
-						float ShootableActorAutoAimScore = GetAutoAimScore(0.f, DistanceToShootable, DotProductOfVectors, CosineOfMaximumVisionAngle);
-						if (ShootableActorAutoAimScore > CurrentMaximumAutoAimScore)
+						if (ShootableActor->GetClass()->ImplementsInterface(UShootable::StaticClass()))
 						{
-							CenteredShootableActor = ShootableActor;
-							CurrentMaximumAutoAimScore = ShootableActorAutoAimScore;
+							float ShootablePriority = IShootable::Execute_GetAutoAimPriority(ShootableActor);
+							float ShootableActorAutoAimScore = GetAutoAimScore(ShootablePriority, DistanceToShootable, DotProductOfVectors, CosineOfMaximumVisionAngle);
+							if (ShootableActorAutoAimScore > CurrentMaximumAutoAimScore)
+							{
+								GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::SanitizeFloat(ShootableActorAutoAimScore));
+								CenteredShootableActor = ShootableActor;
+								CurrentMaximumAutoAimScore = ShootableActorAutoAimScore;
+							}
 						}
 					}
 				}
@@ -104,12 +109,20 @@ float UProjectileShooterComponent::GetAutoAimScore(float InPriority, float InDis
 	if (MaximumDistance > 0.f)
 	{
 		TotalPrioritySum += DistanceWeight;
-		DistanceFraction = InDistance * DistanceWeight / MaximumDistance;
+		DistanceFraction = (MaximumDistance - InDistance) * DistanceWeight / MaximumDistance;
 	}
 	if (TotalPrioritySum > 0.f)
 	{
+		if (InPriority > 10.f)
+		{
+			InPriority = 10.f;
+		}
+		else if (InPriority < 0.f)
+		{
+			InPriority = 0.f;
+		}
 		float PriorityFraction = InPriority * PriorityWeight * 0.1f;
-		float FocusFraction = InCosineOfVisionAngle * FocusWeight / InCosineOfMaximumVisionAngle;
+		float FocusFraction = (InCosineOfVisionAngle - InCosineOfMaximumVisionAngle) * FocusWeight / (1 - InCosineOfMaximumVisionAngle);
 		float SumOfFractions = PriorityFraction + FocusFraction + DistanceFraction;
 		AutoAimScore = SumOfFractions / TotalPrioritySum;
 	}
