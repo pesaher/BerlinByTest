@@ -37,21 +37,32 @@ private:
 	UFUNCTION()
 		void StartReload();
 	FTimerManager& GetTimerManager(bool& bOutIsTimerManagerValid) const;
+	const AActor* GetCenteredShootableActor() const;
 
 //VARIABLES
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile Shooter|Configuration")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile Shooter|Configuration|Ammo")
 		int32 InitialAmmo;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile Shooter|Configuration")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile Shooter|Configuration|Ammo")
 		int32 MaximumAmmo;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile Shooter|Configuration")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile Shooter|Configuration|Ammo")
 		float ReloadCooldownInSeconds;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile Shooter|Configuration")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile Shooter|Configuration|Ammo")
 		TSubclassOf<AActor> ProjectileClass;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile Shooter|Configuration|Auto Aim")
+		float PriorityWeight;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile Shooter|Configuration|Auto Aim")
+		float DistanceWeight;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile Shooter|Configuration|Auto Aim")
+		float MaximumDistance;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile Shooter|Configuration|Auto Aim")
+		float FocusWeight;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile Shooter|Configuration|Auto Aim")
+		float MaximumVisionAngle;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Projectile Shooter|Readables")
 		int32 CurrentAmmo;
-	UPROPERTY(BlueprintReadOnly, Category = "Projectile Shooter | Readables")
+	UPROPERTY(BlueprintReadOnly, Category = "Projectile Shooter|Readables")
 		FTimerHandle ReloadTimerHandle;
 };

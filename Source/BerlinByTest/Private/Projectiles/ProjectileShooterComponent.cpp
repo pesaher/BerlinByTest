@@ -1,7 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "../../Public/Projectiles/ProjectileShooterComponent.h"
-#include "Runtime/Engine/Classes/Engine/World.h"
+#include "Projectiles/ProjectileShooterComponent.h"
+#include "Engine/World.h"
+#include "Kismet/GameplayStatics.h"
+#include "Projectiles/Shootable.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values for this component's properties
 UProjectileShooterComponent::UProjectileShooterComponent()
@@ -45,18 +48,47 @@ FTimerManager& UProjectileShooterComponent::GetTimerManager(bool& bOutIsTimerMan
 	return TimerManager;
 }
 
+const AActor* UProjectileShooterComponent::GetCenteredShootableActor() const
+{
+	const APawn* const ComponentOwner = Cast<APawn>(GetOwner());
+	if (ComponentOwner->IsValidLowLevel())
+	{
+		float CosineOfMaximumVisionAngle = FGenericPlatformMath::Cos(MaximumVisionAngle);
+		FVector OwnerLocation = ComponentOwner->GetActorLocation();
+		FVector OwnerForwardVector = UKismetMathLibrary::GetForwardVector(ComponentOwner->GetControlRotation());
+		OwnerForwardVector.Normalize();
+		TArray<AActor*> ShootableActors;
+		UGameplayStatics::GetAllActorsWithInterface(this, UShootable::StaticClass(), ShootableActors);
+		for (const AActor* ShootableActor : ShootableActors)
+		{
+			FVector VectorToShootable = ShootableActor->GetActorLocation() - OwnerLocation;
+			if (VectorToShootable.Size() < MaximumDistance)
+			{
+				VectorToShootable.Normalize();
+				float DotProductOfVectors = FVector::DotProduct(VectorToShootable, OwnerForwardVector);
+				if (DotProductOfVectors > CosineOfMaximumVisionAngle)
+				{
+
+				}
+			}
+		}
+	}
+	return ShootableActors[0];
+}
+
 bool UProjectileShooterComponent::Shoot()
 {
 	bool bHasAmmo = HasAmmo();
 	if (bHasAmmo)
 	{
-		UWorld* CurrentWorld = GetWorld();
+		UWorld* const CurrentWorld = GetWorld();
 		if (CurrentWorld->IsValidLowLevel())
 		{
-			APawn* ComponentOwner = Cast<APawn>(GetOwner());
+			const APawn* const ComponentOwner = Cast<APawn>(GetOwner());
 			if (ComponentOwner->IsValidLowLevel())
 			{
-				AActor* SpawnedProjectile = CurrentWorld->SpawnActor<AActor>(ProjectileClass, ComponentOwner->GetActorLocation(), ComponentOwner->GetControlRotation());
+				FRotator ProjectileRotation = { 0.f, ComponentOwner->GetControlRotation().Yaw, 0.f };
+				AActor* SpawnedProjectile = CurrentWorld->SpawnActor<AActor>(ProjectileClass, ComponentOwner->GetActorLocation(), ProjectileRotation);
 				--CurrentAmmo;
 				StartReload();
 			}
