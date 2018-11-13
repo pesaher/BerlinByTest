@@ -9,6 +9,7 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Public/Projectiles/ProjectileShooterComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ABerlinByTestCharacter
@@ -49,6 +50,16 @@ ABerlinByTestCharacter::ABerlinByTestCharacter()
 
 	ProjectileShooterComponent = CreateDefaultSubobject<UProjectileShooterComponent>(TEXT("ProjectileShooter"));
 	AddOwnedComponent(ProjectileShooterComponent);
+	UCapsuleComponent* CharacterCollision = GetCapsuleComponent();
+	if (CharacterCollision->IsValidLowLevel())
+	{
+		CharacterCollision->BodyInstance.SetCollisionProfileName(TEXT("Player"));
+	}
+	USkeletalMeshComponent* CharacterMesh = GetMesh();
+	if (CharacterMesh->IsValidLowLevel())
+	{
+		CharacterMesh->BodyInstance.SetCollisionProfileName(TEXT("Player"));
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
