@@ -48,8 +48,10 @@ ABerlinByTestCharacter::ABerlinByTestCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 
+	// Create component used to shoot projectiles
 	ProjectileShooterComponent = CreateDefaultSubobject<UProjectileShooterComponent>(TEXT("ProjectileShooter"));
 	AddOwnedComponent(ProjectileShooterComponent);
+	//Modify collision profiles of the capsule and mesh components so that they don't interfere with projectiles
 	UCapsuleComponent* CharacterCollision = GetCapsuleComponent();
 	if (CharacterCollision->IsValidLowLevel())
 	{
@@ -89,6 +91,9 @@ void ABerlinByTestCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 
 	// VR headset functionality
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &ABerlinByTestCharacter::OnResetVR);
+
+	// Shoot projectiles
+	PlayerInputComponent->BindAction("Shoot", IE_Pressed, this, &ABerlinByTestCharacter::Shoot);
 }
 
 
@@ -145,5 +150,13 @@ void ABerlinByTestCharacter::MoveRight(float Value)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
+	}
+}
+
+void ABerlinByTestCharacter::Shoot()
+{
+	if (ProjectileShooterComponent->IsValidLowLevel())
+	{
+		ProjectileShooterComponent->Shoot();
 	}
 }

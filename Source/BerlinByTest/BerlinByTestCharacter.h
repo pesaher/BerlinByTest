@@ -42,6 +42,9 @@ protected:
 	/** Called for side to side input */
 	void MoveRight(float Value);
 
+	// Called to shoot projectiles
+	void Shoot();
+
 	/** 
 	 * Called via input to turn at a given rate. 
 	 * @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
@@ -71,6 +74,7 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 private:
+	// Component used to shoot projectiles
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		UProjectileShooterComponent* ProjectileShooterComponent;
 };
