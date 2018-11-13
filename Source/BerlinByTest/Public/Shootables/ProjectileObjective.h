@@ -26,6 +26,7 @@ protected:
 
 //VARIABLES
 public:
+	// This value must be between 0 and 10 (it will be clamped to that range in the calculations otherwise)
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Projectile Objective|Shootable")
 		float AutoAimPriority;
 	UPROPERTY(VisibleDefaultsOnly, Category = "Projectile Objective")
